@@ -29,16 +29,16 @@ builder.Services.AddScoped<TodoService> ();
 var app = builder.Build();
 
 
-app.MapGet("/todo", ( [FromServices] TodoService _todoservice,ILogger<Program> loger) =>
+app.MapGet("/todo",  async( [FromServices] ITodoService _todoservice,ILogger<Program> loger) =>
 {
-    List<TodoOutput>? _todos = _todoservice.GetAllTodo();
+    var  _todos = await _todoservice.GetAllTodoAsync();
     loger.LogInformation("Hello Abdou Bienvenu sur les loggers");
     return Results.Ok(_todos);
 });
 
-app.MapGet("/todo/{id:int}", ([FromRoute] int id, [FromServices] TodoService _todoservice) =>
+app.MapGet("/todo/{id:int}", async ([FromRoute] int id, [FromServices] ITodoService _todoservice) =>
 {
-    var _todo = _todoservice.GetTodoById(id);
+    var _todo = await _todoservice.GetTodoByIDAsync(id);
     if( _todo is not null) return  Results.Ok(_todo);
     return Results.NotFound();
 });
@@ -46,7 +46,7 @@ app.MapGet("/todo/{id:int}", ([FromRoute] int id, [FromServices] TodoService _to
 
 app.MapPost("/todo", (  
     [FromBody]TodoInput input,
-    [FromServices] TodoService service,
+    [FromServices] ITodoService service,
     [FromServices] IValidator<TodoInput> validator ) =>
 {
     var result = validator.Validate(input);
@@ -58,15 +58,15 @@ app.MapPost("/todo", (
             e.PropertyName
         }));
     }
-    var _todo = service.AddTodo(input);
+    var _todo = service.AddTodoAsync(input);
     return Results.Ok(_todo);   
 });
 
-app.MapPut("/todo/{id:int}",(
+app.MapPut("/todo/{id:int}", async (
     [FromRoute]int id ,
     [FromBody] TodoInput input,
     [FromServices] IValidator<TodoInput> validator,
-    [FromServices] TodoService service) =>
+    [FromServices] ITodoService service) =>
 {
     var result = validator.Validate(input);
     if(!result.IsValid)
@@ -77,14 +77,14 @@ app.MapPut("/todo/{id:int}",(
             e.PropertyName
         }));
     }
-    var _todo = service.Update(input, id);
+    var _todo =  await service.UpdateTodoAsync( id,input);
     return Results.Ok(_todo);
 });
 
 app.MapDelete("/todo/{id:int}", 
-    ([FromRoute] int id,[FromServices] TodoService service) =>
+   async ([FromRoute] int id,[FromServices] ITodoService service) =>
 {
-    var result = service.Delete(id);
+    var result =  await service.DeleteTodoAsync(id);
     if (result) return Results.Content("Supprimé!");
     return Results.NoContent();
 });
