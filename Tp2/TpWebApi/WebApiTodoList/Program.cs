@@ -1,7 +1,9 @@
 ﻿
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using WebApiTodoList.Data;
 using WebApiTodoList.Dto;
 using WebApiTodoList.services;
 
@@ -17,11 +19,15 @@ var loggerConfiguration = new LoggerConfiguration()
 var logger = loggerConfiguration.CreateLogger();
 builder.Services.AddSerilog(logger);
 
+//-----------Configuration DbContext For DB -----------------
+
+builder.Services.AddDbContext<TodoDbContext>(op => op.UseSqlite(builder.Configuration.GetConnectionString("Sqlite")));
 //-----Configuration Validator -------------
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<TodoService> ();
 var app = builder.Build();
+
 
 app.MapGet("/todo", ( [FromServices] TodoService _todoservice,ILogger<Program> loger) =>
 {
@@ -60,7 +66,7 @@ app.MapPut("/todo/{id:int}",(
     [FromRoute]int id ,
     [FromBody] TodoInput input,
     [FromServices] IValidator<TodoInput> validator,
-       [FromServices] TodoService service) =>
+    [FromServices] TodoService service) =>
 {
     var result = validator.Validate(input);
     if(!result.IsValid)
@@ -73,5 +79,13 @@ app.MapPut("/todo/{id:int}",(
     }
     var _todo = service.Update(input, id);
     return Results.Ok(_todo);
+});
+
+app.MapDelete("/todo/{id:int}", 
+    ([FromRoute] int id,[FromServices] TodoService service) =>
+{
+    var result = service.Delete(id);
+    if (result) return Results.Content("Supprimé!");
+    return Results.NoContent();
 });
 app.Run();

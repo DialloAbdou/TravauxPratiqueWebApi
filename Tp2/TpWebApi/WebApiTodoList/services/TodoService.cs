@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Web;
+using WebApiTodoList.Data.Models;
 using WebApiTodoList.Dto;
-using WebApiTodoList.Models;
 
 namespace WebApiTodoList.services
 {
@@ -74,9 +74,15 @@ namespace WebApiTodoList.services
             return null!;
         }
 
-        public void Delete(int id)
+        public bool Delete(int id)
         {
-
+            var todo = _todoList.Find(t => t.Id == id);
+            if (todo is not null)
+            {
+                _todoList.Remove(todo);
+                return true;
+            }
+            return false;
         }
     }
 }
