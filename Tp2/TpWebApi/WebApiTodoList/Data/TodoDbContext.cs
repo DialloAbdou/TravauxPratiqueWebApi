@@ -3,14 +3,14 @@ using WebApiTodoList.Data.Models;
 
 namespace WebApiTodoList.Data
 {
-    public class TodoDbContext : DbContext
+    public class TodoDbContext:DbContext
     {
         public DbSet<Todo> Todos { get; set; }
 
         public TodoDbContext(DbContextOptions<TodoDbContext> options)
-            :base(options)
+            : base(options)
         {
-                
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,5 +20,7 @@ namespace WebApiTodoList.Data
                 t.Property(t => t.Titre).HasMaxLength(500);
             });
         }
+
+      
     }
 }

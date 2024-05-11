@@ -22,12 +22,24 @@ builder.Services.AddSerilog(logger);
 //-----------Configuration DbContext For DB -----------------
 
 builder.Services.AddDbContext<TodoDbContext>(op => op.UseSqlite(builder.Configuration.GetConnectionString("Sqlite")));
+//builder.Services.AddDbContext<TodoDbContext>();
 //-----Configuration Validator -------------
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddScoped<TodoService> ();
+builder.Services.AddScoped< ITodoService, TodoService> ();
+
 var app = builder.Build();
 
+//await app.Services
+//    .CreateAsyncScope()
+//    .ServiceProvider
+//    .GetRequiredService<TodoDbContext>()
+//    .Database.EnsureCreatedAsync();
+await app.Services
+    .CreateAsyncScope()
+    .ServiceProvider
+    .GetRequiredService<TodoDbContext>()
+    .Database.MigrateAsync();
 
 app.MapGet("/todo",  async( [FromServices] ITodoService _todoservice,ILogger<Program> loger) =>
 {

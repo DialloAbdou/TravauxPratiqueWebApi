@@ -63,6 +63,7 @@ namespace WebApiTodoList.services
         {
             var todo = GetTodo(input);
             await _context.Todos.AddAsync(todo);
+            await _context.SaveChangesAsync();
             return GetTodoOutput(todo);
         }
 
