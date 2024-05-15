@@ -28,6 +28,7 @@ builder.Services.AddDbContext<TodoDbContext>(op => op.UseSqlite(builder.Configur
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped< ITodoService, TodoService> ();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

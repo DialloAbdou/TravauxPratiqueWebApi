@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System.Runtime.CompilerServices;
+using WebApiTodoList.Data.Models;
 using WebApiTodoList.Dto;
 using WebApiTodoList.services;
 
@@ -45,11 +47,17 @@ namespace WebApiTodoList.EndPoinds
         /// <returns></returns>
         private static async Task<IResult> GetById(
             [FromRoute] int id,
-            [FromServices] ITodoService service)
+            [FromServices] ITodoService service,
+            [FromServices] IMemoryCache cache)
         {
-            var _todo = await service.GetTodoByIDAsync(id);
-            if (_todo is not null) return Results.Ok(_todo);
-            return Results.NotFound();
+            if (!cache.TryGetValue<TodoOutput>($"todo_{id}", out var _todo))
+            {
+                _todo = await service.GetTodoByIDAsync(id);
+                if (_todo is null) return Results.NotFound();
+                cache.Set($"todo_{id}", _todo);
+                return Results.Ok(_todo);
+            }
+            return Results.Ok(_todo);
         }
 
         /// <summary>
@@ -93,7 +101,8 @@ namespace WebApiTodoList.EndPoinds
             [FromRoute] int id,
             [FromBody] TodoInput input,
             [FromServices] IValidator<TodoInput> validator,
-            [FromServices] ITodoService service)
+            [FromServices] ITodoService service,
+            [FromServices] IMemoryCache cache)
         {
             var result = validator.Validate(input);
             if (!result.IsValid)
@@ -104,8 +113,13 @@ namespace WebApiTodoList.EndPoinds
                     e.PropertyName
                 }));
             }
-            var _todo = await service.UpdateTodoAsync(id, input);
-            return Results.Ok(_todo);
+           
+            var isOk= await service.UpdateTodoAsync(id, input);
+            if(isOk)
+            {
+                cache.Remove($"todo_{id}");
+            }
+            return Results.Ok(isOk);
         }
 
         private static async Task<IResult> DeleteAsync(
