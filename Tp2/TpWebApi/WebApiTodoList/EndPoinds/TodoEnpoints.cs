@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Runtime.CompilerServices;
 using WebApiTodoList.Data.Models;
@@ -13,9 +14,11 @@ namespace WebApiTodoList.EndPoinds
         // prefice: todo
         public static RouteGroupBuilder MapTodoEndPoint(this RouteGroupBuilder group)
         {
-            group.MapGet("", GetAll);
+            group.MapGet("", GetAll)
+                .CacheOutput();
 
-            group.MapGet("/{id:int}", GetById);
+            group.MapGet("/{id:int}", GetById)
+                .CacheOutput("Expire2mn");
 
             group.MapPost("", AddTodoAsync);
 
@@ -48,15 +51,24 @@ namespace WebApiTodoList.EndPoinds
         private static async Task<IResult> GetById(
             [FromRoute] int id,
             [FromServices] ITodoService service,
-            [FromServices] IMemoryCache cache)
+           [FromServices] IDistributedCache cache)
+        //[FromServices] IMemoryCache cache)
         {
-            if (!cache.TryGetValue<TodoOutput>($"todo_{id}", out var _todo))
+            //if (!cache.TryGetValue<TodoOutput>($"todo_{id}", out var _todo))
+            //{
+            //    _todo = await service.GetTodoByIDAsync(id);
+            //    if (_todo is null) return Results.NotFound();
+            //    //cache.Set($"todo_{id}", _todo);
+            //    return Results.Ok(_todo);
+            //}
+            var _todo = await cache.GetAsync<TodoOutput>($"todo_{id}");
+            if (_todo is null)
             {
                 _todo = await service.GetTodoByIDAsync(id);
                 if (_todo is null) return Results.NotFound();
-                cache.Set($"todo_{id}", _todo);
-                return Results.Ok(_todo);
+                await  cache.SetAsync<TodoOutput>($"todo_{id}", _todo);
             }
+            //cache.Set($"todo_{id}", _todo);
             return Results.Ok(_todo);
         }
 
@@ -102,7 +114,8 @@ namespace WebApiTodoList.EndPoinds
             [FromBody] TodoInput input,
             [FromServices] IValidator<TodoInput> validator,
             [FromServices] ITodoService service,
-            [FromServices] IMemoryCache cache)
+            [FromServices]IDistributedCache cache)
+        //[FromServices] IMemoryCache cache)
         {
             var result = validator.Validate(input);
             if (!result.IsValid)
@@ -113,12 +126,11 @@ namespace WebApiTodoList.EndPoinds
                     e.PropertyName
                 }));
             }
-           
-            var isOk= await service.UpdateTodoAsync(id, input);
-            if(isOk)
-            {
-                cache.Remove($"todo_{id}");
-            }
+            var isOk = await service.UpdateTodoAsync(id, input);
+            //if(isOk)
+            //{
+            //    cache.Remove($"todo_{id}");
+            //}
             return Results.Ok(isOk);
         }
 

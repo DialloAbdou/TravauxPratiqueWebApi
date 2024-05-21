@@ -8,7 +8,7 @@ using WebApiTodoList.Dto;
 using WebApiTodoList.EndPoinds;
 using WebApiTodoList.services;
 
-var builder = WebApplication.CreateBuilder();
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders(); // suppression de log par defaut
 
@@ -28,9 +28,19 @@ builder.Services.AddDbContext<TodoDbContext>(op => op.UseSqlite(builder.Configur
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped< ITodoService, TodoService> ();
-builder.Services.AddMemoryCache();
+//builder.Services.AddMemoryCache();
+//builder.Services.AddOutputCache(opt =>
+//{
+//    // les differents strategie des caches output
+//    opt.AddBasePolicy(b=>b.Expire(TimeSpan.FromSeconds(2)));
+//    opt.AddPolicy("Expire2mn", b => b.Expire(TimeSpan.FromMinutes(2)));
+//    opt.AddPolicy("ById", b => b.SetVaryByRouteValue("id"));
+//});
 
+// Utilisation du Cache Distribuer
+builder.Services.AddDistributedMemoryCache();
 var app = builder.Build();
+app.UseOutputCache();
 
 app.MapGroup("/todo")
     .MapTodoEndPoint();
