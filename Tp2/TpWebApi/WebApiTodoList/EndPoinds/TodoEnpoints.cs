@@ -26,7 +26,6 @@ namespace WebApiTodoList.EndPoinds
 
             group.MapDelete("/{id:int}", DeleteAsync);
 
-
             return group;
         }
 
@@ -141,6 +140,27 @@ namespace WebApiTodoList.EndPoinds
             var result = await service.DeleteTodoAsync(id);
             if (result) return Results.Content("Supprimé!");
             return Results.NoContent();
+        }
+
+        private static async Task<IResult> CreateUserAsync(
+            [FromBody] UtilisateurInput input,
+            [FromServices]IValidator<UtilisateurInput> validator,
+            [FromServices] IUtilisateurService utlService)
+        {
+            var result = validator.Validate(input);
+            if(!result.IsValid)
+            {
+                if (!result.IsValid)
+                {
+                    return Results.BadRequest(result.Errors.Select(e => new
+                    {
+                        e.ErrorMessage, 
+                        e.PropertyName
+                    }));
+                }
+            }
+            var utilOutput = await utlService.CreateUserAsync(input);   
+            return Results.Ok(utilOutput);
         }
     }
 }
