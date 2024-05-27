@@ -26,14 +26,16 @@ namespace WebApiTodoList.services
 
         }
 
-        private Todo GetTodo(TodoInput input)
+        private Todo GetTodo(TodoInput input, string token)
         {
             return new Todo
             {
-            
+
                 Titre = input.Titre,
                 DateDebut = DateTime.Today,
                 DateFin = input.DateFin,
+                // ajouter le token
+                UtilisateurToken = token
 
             };
         }
@@ -59,9 +61,9 @@ namespace WebApiTodoList.services
             return null!;
         }
 
-        public async Task<TodoOutput> AddTodoAsync(TodoInput input)
+        public async Task<TodoOutput> AddTodoAsync(TodoInput input, string token)
         {
-            var todo = GetTodo(input);
+            var todo = GetTodo(input, token);
             await _context.Todos.AddAsync(todo);
             await _context.SaveChangesAsync();
             return GetTodoOutput(todo);

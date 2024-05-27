@@ -7,7 +7,7 @@ namespace WebApiTodoList.services
 
         Task<List<TodoOutput>> GetAllTodoAsync();
         Task<TodoOutput> GetTodoByIDAsync(int id);
-        Task<TodoOutput> AddTodoAsync(TodoInput input);
+        Task<TodoOutput> AddTodoAsync(TodoInput input, string token);
         Task<bool> UpdateTodoAsync( int id , TodoInput input);
         Task<bool> DeleteTodoAsync(int id);
     }

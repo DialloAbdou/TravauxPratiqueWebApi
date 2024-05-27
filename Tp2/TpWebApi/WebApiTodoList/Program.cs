@@ -6,6 +6,7 @@ using Serilog;
 using WebApiTodoList.Data;
 using WebApiTodoList.Dto;
 using WebApiTodoList.EndPoinds;
+using WebApiTodoList.Mappages;
 using WebApiTodoList.services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +20,9 @@ var loggerConfiguration = new LoggerConfiguration()
     .WriteTo.File("logs/log.txt",rollingInterval:RollingInterval.Day);
 var logger = loggerConfiguration.CreateLogger();
 builder.Services.AddSerilog(logger);
+//------------Mappage-------------------
 
+builder.Services.AddAutoMapper(cf=>cf.AddProfile<AutoMappingConfiguration>());
 //-----------Configuration DbContext For DB -----------------
 
 builder.Services.AddDbContext<TodoDbContext>(op => op.UseSqlite(builder.Configuration.GetConnectionString("Sqlite")));
@@ -44,6 +47,8 @@ app.UseOutputCache();
 
 app.MapGroup("/todo")
     .MapTodoEndPoint();
+app.MapGroup("/user")
+    .MapUserEndPoint();
 
 //await app.Services
 //    .CreateAsyncScope()

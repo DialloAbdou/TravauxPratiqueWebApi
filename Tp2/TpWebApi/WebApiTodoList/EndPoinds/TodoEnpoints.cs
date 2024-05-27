@@ -82,7 +82,8 @@ namespace WebApiTodoList.EndPoinds
         private static async Task<IResult> AddTodoAsync(
                 [FromBody] TodoInput input,
                 [FromServices] IValidator<TodoInput> validator,
-                [FromServices] ITodoService service)
+                [FromServices] ITodoService service,
+                string token)
         {
             var result = validator.Validate(input);
             if (!result.IsValid)
@@ -93,7 +94,7 @@ namespace WebApiTodoList.EndPoinds
                     e.PropertyName
                 }));
             }
-            var _todo = await service.AddTodoAsync(input);
+            var _todo = await service.AddTodoAsync(input, token);
 
             return Results.Ok(_todo);
 
@@ -161,6 +162,28 @@ namespace WebApiTodoList.EndPoinds
             }
             var utilOutput = await utlService.CreateUserAsync(input);   
             return Results.Ok(utilOutput);
+        }
+
+
+        private static async Task<IResult> AddUserAsync
+         (
+         [FromBody] UtilisateurInput input,
+         [FromServices] IUtilisateurService service,
+         [FromServices] IValidator<UtilisateurInput> validator)
+        {
+            var resutl = validator.Validate(input);
+            if (!resutl.IsValid)
+            {
+                return Results.BadRequest(resutl.Errors.Select(e => new
+                {
+                    e.ErrorMessage,
+                    e.PropertyName
+                }));
+
+
+            }
+            var utlisateur = await service.CreateUserAsync(input);
+            return Results.Ok(utlisateur);
         }
     }
 }

@@ -7,6 +7,6 @@
         public required DateTime DateDebut { get; set; }
         public DateTime? DateFin { get; set; }
         public int UtilisateurId { get; set; }
-        public required Utilisateur Utilisateur { get; set; }
+        public required string UtilisateurToken { get; set; }
     }
 }
